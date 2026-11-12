@@ -1,0 +1,35 @@
+# Python and development environments
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+build/
+dist/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local data and generated artifacts
+data/*
+!data/README.md
+outputs/
+logs/
+*.log
+*.pt
+*.pth
+*.pkl
+*.npz
+*.sqlite3*
+*_ids.csv
+.run.lock
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+configs/local*.json

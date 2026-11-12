@@ -1,0 +1,8 @@
+# Environment used by the completed local experiment; CUDA build was torch 2.5.1+cu121.
+torch==2.5.1
+numpy==1.26.4
+pandas==2.2.3
+scikit-learn==1.0.2
+optuna==4.9.0
+xgboost==2.1.3
+lightgbm==4.6.0

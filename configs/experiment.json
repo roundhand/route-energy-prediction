@@ -1,0 +1,19 @@
+{
+  "data_root": "data/raw",
+  "output": "outputs/route_rmse",
+  "start_date": "2023-09-11",
+  "end_date": "2023-09-15",
+  "trials": 30,
+  "search_epochs": 50,
+  "final_epochs": 100,
+  "seeds": 20,
+  "device": "auto",
+  "models": ["Distance-based Regression", "XGBoost", "LightGBM", "DNN", "FCNet", "GRU", "RET", "Proposed-EF"],
+  "weather_map": {
+    "2023-09-11": "小雨",
+    "2023-09-12": "小雨",
+    "2023-09-13": "中雨",
+    "2023-09-14": "小雨",
+    "2023-09-15": "阴天"
+  }
+}

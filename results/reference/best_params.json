@@ -1,0 +1,66 @@
+{
+  "Distance-based Regression": {
+    "fit_intercept": true
+  },
+  "XGBoost": {
+    "n_estimators": 1000,
+    "learning_rate": 0.037964144671773524,
+    "max_depth": 4,
+    "subsample": 0.8667261932357908,
+    "colsample_bytree": 0.8117741317114515,
+    "reg_alpha": 0.19386778259192655,
+    "reg_lambda": 0.4758171862505622,
+    "min_child_weight": 6.567848036397873
+  },
+  "LightGBM": {
+    "n_estimators": 600,
+    "learning_rate": 0.030915236926517053,
+    "max_depth": 10,
+    "subsample": 0.6916766470490647,
+    "colsample_bytree": 0.6963526277474572,
+    "reg_alpha": 0.12980614096023002,
+    "reg_lambda": 0.00031306364011981635,
+    "num_leaves": 101,
+    "min_child_samples": 20
+  },
+  "DNN": {
+    "lr": 0.00028180680291847244,
+    "weight_decay": 2.4586032763280077e-06,
+    "batch_size": 32,
+    "hidden1": 256,
+    "hidden2": 64,
+    "dropout": 0.1800170052944527
+  },
+  "FCNet": {
+    "lr": 0.0029777723453189757,
+    "weight_decay": 0.0001936445261894528,
+    "batch_size": 64,
+    "seg_loss_w": 0.3332931704983035
+  },
+  "GRU": {
+    "lr": 0.000609259388742009,
+    "weight_decay": 2.9689595210214468e-06,
+    "batch_size": 32,
+    "seg_loss_w": 0.449498511876264
+  },
+  "RET": {
+    "lr": 0.00027010527749605503,
+    "weight_decay": 2.9204338471814107e-05,
+    "batch_size": 64,
+    "seg_loss_w": 0.28140549728612524,
+    "n_blocks": 2,
+    "d_model": 64,
+    "dropout": 0.06626289824631988
+  },
+  "Proposed-EF": {
+    "lr": 0.0005368463973198873,
+    "weight_decay": 0.0007655080108692768,
+    "batch_size": 64,
+    "seg_loss_w": 0.21576320960238854,
+    "d_model": 64,
+    "n_heads": 2,
+    "n_layers": 2,
+    "d_ff": 512,
+    "dropout": 0.05328574826366187
+  }
+}

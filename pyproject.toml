@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "route-energy-benchmark"
+version = "0.1.0"
+description = "Route energy prediction benchmarks with unified route-level RMSE model selection"
+readme = "README.md"
+requires-python = ">=3.9,<3.13"
+license = {text = "MIT"}
+dependencies = [
+  "numpy>=1.26,<2",
+  "pandas>=2.2,<3",
+  "torch>=2.5,<2.6",
+  "scikit-learn>=1.0.2,<2",
+  "optuna>=4.9,<5",
+  "xgboost>=2.1,<3",
+  "lightgbm>=4.6,<5",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7,<9", "black>=23,<26"]
+
+[project.scripts]
+route-energy = "route_energy.experiment:main"
+route-energy-report = "route_energy.report:main"
+route-energy-demo = "route_energy.synthetic:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py39"]
