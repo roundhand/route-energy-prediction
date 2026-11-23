@@ -37,7 +37,11 @@ class SegmentGroupEncoder(nn.Module):
         super().__init__()
         self.idx = group_indices
         self.traffic_mlp = GroupMLP(group_dims["traffic_state"], d_model, dropout)
-        self.stability_mlp = GroupMLP(group_dims["traffic_stability"], d_model, dropout)
+        self.stability_mlp = (
+            GroupMLP(group_dims["traffic_stability"], d_model, dropout)
+            if "traffic_stability" in group_dims
+            else None
+        )
         self.road_enc = RoadConditionEncoder(
             group_dims["slope"], group_dims["turning"], group_dims["road_type"], d_model, dropout
         )
@@ -48,15 +52,43 @@ class SegmentGroupEncoder(nn.Module):
     def forward(self, x):
         (B, L, _) = x.shape
         idx = self.idx
-        group_embs = [
-            self.traffic_mlp(x[..., idx["traffic_state"]]),
-            self.stability_mlp(x[..., idx["traffic_stability"]]),
-            self.road_enc(x[..., idx["slope"]], x[..., idx["turning"]], x[..., idx["road_type"]]),
-        ]
-        groups = torch.stack(group_embs, dim=2).view(B * L, 3, -1)
+        group_embs = [self.traffic_mlp(x[..., idx["traffic_state"]])]
+        if self.stability_mlp is not None:
+            group_embs.append(self.stability_mlp(x[..., idx["traffic_stability"]]))
+        group_embs.append(
+            self.road_enc(x[..., idx["slope"]], x[..., idx["turning"]], x[..., idx["road_type"]])
+        )
+        groups = torch.stack(group_embs, dim=2).view(B * L, len(group_embs), -1)
         query = self.agg_query.expand(B * L, -1, -1)
         (out, _) = self.group_attn(query, groups, groups)
         return self.norm(out.squeeze(1)).view(B, L, -1)
+
+
+class SegmentFlatEncoder(nn.Module):
+    """Project the retained raw segment features without group attention."""
+
+    def __init__(self, indices, d_model, dropout):
+        super().__init__()
+        self.indices = indices
+        self.net = nn.Sequential(
+            nn.Linear(len(indices), d_model),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(d_model, d_model),
+            nn.LayerNorm(d_model),
+        )
+
+    def forward(self, x):
+        return self.net(x[..., self.indices])
+
+
+class OrderOnlyPositionalEncoding(nn.Module):
+    def __init__(self, d_model, max_len):
+        super().__init__()
+        self.order_embed = nn.Embedding(max_len, d_model)
+
+    def forward(self, x, cum_dist):
+        return x + self.order_embed(torch.arange(x.shape[1], device=x.device))
 
 
 class DistancePositionalEncoding(nn.Module):
@@ -126,7 +158,9 @@ class SegmentTransformerLayer(nn.Module):
         Q = self.q(h).view(B, L, self.n_heads, self.d_head).transpose(1, 2)
         K = self.k(h).view(B, L, self.n_heads, self.d_head).transpose(1, 2)
         V = self.v(h).view(B, L, self.n_heads, self.d_head).transpose(1, 2)
-        attn = torch.matmul(Q, K.transpose(-2, -1)) / self.scale + dist_bias
+        attn = torch.matmul(Q, K.transpose(-2, -1)) / self.scale
+        if dist_bias is not None:
+            attn = attn + dist_bias
         if pad_mask is not None:
             attn = attn.masked_fill(pad_mask[:, None, None, :], float("-inf"))
         attn = self.drop(F.softmax(attn, dim=-1))
@@ -148,12 +182,29 @@ class RouteEnergyTransformer(nn.Module):
         d_ff=256,
         dropout=0.1,
         max_len=MAX_LEN,
+        *,
+        traffic_stability=True,
+        distance_aware=True,
+        grouped_encoder=True,
     ):
         super().__init__()
-        self.seg_encoder = SegmentGroupEncoder(group_dims, group_indices, d_model, n_heads, dropout)
+        if not traffic_stability:
+            group_dims = {g: size for g, size in group_dims.items() if g != "traffic_stability"}
+            group_indices = {g: group_indices[g] for g in group_dims}
+        if grouped_encoder:
+            self.seg_encoder = SegmentGroupEncoder(
+                group_dims, group_indices, d_model, n_heads, dropout
+            )
+        else:
+            indices = sorted(i for group in group_indices.values() for i in group)
+            self.seg_encoder = SegmentFlatEncoder(indices, d_model, dropout)
         self.route_proj = nn.Linear(route_dim, d_model)
-        self.pos_enc = DistancePositionalEncoding(d_model, max_len)
-        self.dist_bias = DistanceBias(n_heads)
+        self.pos_enc = (
+            DistancePositionalEncoding(d_model, max_len)
+            if distance_aware
+            else OrderOnlyPositionalEncoding(d_model, max_len)
+        )
+        self.dist_bias = DistanceBias(n_heads) if distance_aware else None
         self.layers = nn.ModuleList(
             [
                 SegmentTransformerLayer(d_model, n_heads, d_ff, dropout, d_model)
@@ -169,7 +220,7 @@ class RouteEnergyTransformer(nn.Module):
         route_emb = self.route_proj(route_ctx)
         x = self.seg_encoder(seg_seq)
         x = self.pos_enc(x, cum_dist)
-        dist_bias = self.dist_bias(cum_dist)
+        dist_bias = self.dist_bias(cum_dist) if self.dist_bias is not None else None
         pad_mask = ~mask
         for layer in self.layers:
             x = layer(x, route_emb, dist_bias, pad_mask)

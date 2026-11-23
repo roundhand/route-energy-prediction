@@ -40,6 +40,17 @@ python -m route_energy --config configs/experiment.json --data-root "D:/datasets
 
 完整预算耗时较长。断点续跑时执行同一命令即可，已经完成的 trial 与最终种子会被保留。不要同时向同一输出目录运行两个任务。修改配置或源码后使用新输出目录；数据文件也必须保持不变。强制终止可能留下 `.run.lock`，确认进程已停止后再移除。
 
+## 消融实验与分布图
+
+```bash
+python -m pip install -e ".[ablation]"
+python -m route_energy.ablation --data-root "D:/datasets/ev_energy" --device cuda
+```
+
+默认读取 `results/reference/best_params.json` 的新版 Proposed-EF 参数，并使用主实验的 20 个种子、固定划分和验证路径 RMSE 早停。`w/o Traffic Stability` 去除交通稳定性特征组。`w/o Distance-Aware` 去除距离位置编码和注意力距离偏置，保留学习式顺序嵌入及 FiLM。`w/o Both` 同时进行这两项消融。四组模型均使用分组编码器。
+
+如果已有匹配的主实验输出，可追加 `--reference-run <主实验输出目录>`。该选项核对超参数、各划分的行程 ID、种子、测试标签与指标后，复用完整模型的逐种子结果。每个种子结束后写入 `outputs/ablation-two-factor/results.json`，使用同一命令可续跑。全部完成后输出 `ablation_distributions.png`、`ablation_distributions.svg`、图注和两份 CSV。图与 CSV 的 MAE、RMSE 使用 Wh，MAPE 使用 %。
+
 ## 文件与结果
 
 | 路径 | 作用 |

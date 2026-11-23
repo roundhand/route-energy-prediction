@@ -11,7 +11,7 @@ from .metrics import metrics
 from .utils import set_seed
 
 
-def build(name, p, metadata, ef_metadata, sd):
+def build(name, p, metadata, ef_metadata, sd, **model_options):
     (s, r) = (len(metadata.seg_feat_cols), len(metadata.route_feat_cols))
     if name == "DNN":
         return DNNSD(sd[0][0].shape[1], p["hidden1"], p["hidden2"], p["dropout"])
@@ -26,6 +26,7 @@ def build(name, p, metadata, ef_metadata, sd):
         ef_metadata.group_indices,
         r,
         **{k: p[k] for k in ["d_model", "n_heads", "n_layers", "d_ff", "dropout"]},
+        **model_options,
     )
 
 
@@ -51,9 +52,23 @@ def predict(model, loader, name, device):
     return (np.concatenate(ys), np.concatenate(ps))
 
 
-def fit_nn(name, p, seed, data, epochs, patience, device, metadata, ef_metadata, sd, trial=None):
+def fit_nn(
+    name,
+    p,
+    seed,
+    data,
+    epochs,
+    patience,
+    device,
+    metadata,
+    ef_metadata,
+    sd,
+    trial=None,
+    *,
+    model_options=None,
+):
     set_seed(seed)
-    model = build(name, p, metadata, ef_metadata, sd).to(device)
+    model = build(name, p, metadata, ef_metadata, sd, **(model_options or {})).to(device)
     g = torch.Generator().manual_seed(seed)
     loaders = [
         DataLoader(

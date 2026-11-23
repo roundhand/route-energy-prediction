@@ -40,6 +40,17 @@ Defaults are **30 search trials per stochastic model**, up to 50 epochs per tria
 
 Re-run the identical command to resume completed trials and final seeds. Use a new output directory when changing configuration or source. Only one writer may use an output directory. If a process was force-killed, verify it has stopped before removing its stale `.run.lock`. Data files must remain unchanged while resuming. Sampler RNG state is not serialized; the remaining search trajectory can differ after a restart.
 
+## Ablation and performance distributions
+
+```bash
+python -m pip install -e ".[ablation]"
+python -m route_energy.ablation --data-root "D:/datasets/ev_energy" --device cuda
+```
+
+The full model and three ablations use the selected Proposed-EF hyperparameters and the main benchmark's split, seed list, and validation-RMSE checkpoint rule. `w/o Traffic Stability` removes the traffic-stability feature group. `w/o Distance-Aware` removes the cumulative-distance encoding and attention bias while retaining learned segment order embeddings and FiLM. `w/o Both` combines these two removals. All four configurations use the grouped encoder.
+
+To reuse the full model's existing seed results, pass `--reference-run` with the matching benchmark output directory, including its split IDs and per-seed predictions. Runs resume from `outputs/ablation-two-factor/results.json`. The completed run exports a three-panel figure (PNG and SVG), its caption, and per-seed and summary CSVs with MAE and RMSE in Wh and MAPE in percent.
+
 ## Method
 
 | Model | Input | Training target |
