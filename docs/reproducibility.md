@@ -4,7 +4,7 @@
 
 This package was extracted from the completed local unified-RMSE experiment. Baseline model/data definitions originally lived in `8.19 baseline_FCNet.ipynb`; the EF transformer lived in `8.13 EF 调参.ipynb`. The orchestrator was `tune_baselines.py`. The distribution contains standalone definitions, not these source notebooks or a runtime notebook executor.
 
-Model names such as DavisFCNet, DavisGRU and DavisRET preserve the source experiment's labels. The implementations are research adaptations. In particular, RET uses the experiment's joint MSE training loss, not an exact reproduction of a paper's MAE training objective, and tuning changes its block count and width. No new bibliographic metadata or paper citation is invented here.
+The model names DavisFCNet and DavisRET preserve the source experiment's labels. The implementations are research adaptations. In particular, RET uses the experiment's joint MSE training loss, not an exact reproduction of a paper's MAE training objective, and tuning changes its block count and width. No new bibliographic metadata or paper citation is invented here.
 
 Reference data covered September 11–15, 2023. Retained split sizes were 32,602 training, 4,071 validation and 4,075 test routes. Splitting is performed on `(target, moveid)` with `train_test_split(test_size=0.1, random_state=42)`, followed by `test_size=0.111` for validation. This is a random route split; it is not a held-out-vehicle or chronological split.
 
@@ -27,7 +27,7 @@ All stochastic searches use seeded TPE (seed 42), 30 trials, and a median pruner
 | RET additional | blocks: 1–3; model width: 32/64/128; dropout: 0.05–0.3 |
 | Proposed-EF additional | width: 64/128/256; heads: 2/4/8; layers: 2–4; FF width: 128/256/512; dropout: 0.05–0.3; fixed batch size 64 |
 
-FCNet and GRU retain source architecture dimensions and independently tune optimization/loss parameters. Trees use the full suggested estimator count; no internal early stopping is used. Tree predictions are clipped at zero. Baseline segment inputs include length; EF excludes length from segment feature vectors and uses it in distance encoding/bias and energy reconstruction.
+FCNet retains the source architecture dimensions and tunes its optimization and loss parameters. Trees use the full suggested estimator count; no internal early stopping is used. Tree predictions are clipped at zero. Baseline segment inputs include length; EF excludes length from segment feature vectors and uses it in distance encoding/bias and energy reconstruction.
 
 Final seed list: `1, 7, 13, 21, 42, 55, 77, 88, 99, 137, 168, 233, 256, 314, 377, 404, 512, 610, 987, 999`. Population standard deviation uses `ddof=0`. MAPE is `mean(abs((prediction - target) / (target + 1e-8))) * 100`; near-zero targets can produce large values.
 

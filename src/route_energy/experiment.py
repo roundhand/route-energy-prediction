@@ -25,7 +25,6 @@ MODELS = [
     "LightGBM",
     "DNN",
     "FCNet",
-    "GRU",
     "RET",
     "Proposed-EF",
 ]

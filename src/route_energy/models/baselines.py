@@ -56,38 +56,6 @@ class DavisFCNet(nn.Module):
         return (seg_energy, route_energy)
 
 
-class DavisGRU(nn.Module):
-    """
-    Davis et al. (2024) RNN baseline.
-    单向 GRU，路径级序列建模：
-      seg_feat → FC(32) → GRU(64, unidirectional) → FC(32) → Linear(32→1) → softplus → 求和
-    """
-
-    def __init__(self, seg_dim, route_dim):
-        super().__init__()
-        self.input_embed = nn.Sequential(nn.Linear(seg_dim + route_dim, 32), nn.ReLU())
-        self.gru = nn.GRU(32, 64, num_layers=1, batch_first=True, bidirectional=False)
-        self.output_embed = nn.Sequential(nn.Linear(64, 32), nn.ReLU())
-        self.head = nn.Linear(32, 1)
-
-    def forward(self, seg_seq, route_ctx, cum_dist, mask):
-        (B, L, _) = seg_seq.shape
-        route_exp = route_ctx.unsqueeze(1).expand(-1, L, -1)
-        x = torch.cat([seg_seq, route_exp], dim=-1)
-        x = self.input_embed(x)
-        lengths = mask.sum(dim=1).cpu().clamp(min=1)
-        packed = nn.utils.rnn.pack_padded_sequence(
-            x, lengths, batch_first=True, enforce_sorted=False
-        )
-        (gru_out, _) = self.gru(packed)
-        (gru_out, _) = nn.utils.rnn.pad_packed_sequence(gru_out, batch_first=True, total_length=L)
-        out = self.output_embed(gru_out)
-        seg_energy = F.softplus(self.head(out).squeeze(-1))
-        seg_energy = seg_energy * mask.float()
-        route_energy = seg_energy.sum(dim=-1)
-        return (seg_energy, route_energy)
-
-
 class RETBlock(nn.Module):
     """GPT2-style pre-norm transformer block with causal self-attention."""
 

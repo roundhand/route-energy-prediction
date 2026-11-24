@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from sklearn.linear_model import LinearRegression
-from .models.baselines import DNNSD, DavisFCNet, DavisGRU, DavisRET
+from .models.baselines import DNNSD, DavisFCNet, DavisRET
 from .models.proposed import RouteEnergyTransformer
 from .metrics import metrics
 from .utils import set_seed
@@ -17,10 +17,10 @@ def build(name, p, metadata, ef_metadata, sd, **model_options):
         return DNNSD(sd[0][0].shape[1], p["hidden1"], p["hidden2"], p["dropout"])
     if name == "FCNet":
         return DavisFCNet(s, r)
-    if name == "GRU":
-        return DavisGRU(s, r)
     if name == "RET":
         return DavisRET(s, r, p["n_blocks"], p["d_model"], dropout=p["dropout"])
+    if name != "Proposed-EF":
+        raise ValueError(f"Unsupported neural model: {name}")
     return RouteEnergyTransformer(
         ef_metadata.group_dims,
         ef_metadata.group_indices,

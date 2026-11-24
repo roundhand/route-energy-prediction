@@ -8,7 +8,7 @@
   "final_epochs": 100,
   "seeds": 20,
   "device": "auto",
-  "models": ["Distance-based Regression", "XGBoost", "LightGBM", "DNN", "FCNet", "GRU", "RET", "Proposed-EF"],
+  "models": ["Distance-based Regression", "XGBoost", "LightGBM", "DNN", "FCNet", "RET", "Proposed-EF"],
   "weather_map": {
     "2023-09-11": "小雨",
     "2023-09-12": "小雨",
