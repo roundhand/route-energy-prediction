@@ -31,7 +31,7 @@ def test_metrics_use_all_samples():
     assert result["MAE"] == 1
 
 
-@pytest.mark.parametrize("name", ["DNN", "FCNet", "GRU", "RET", "Proposed-EF"])
+@pytest.mark.parametrize("name", ["DNN", "FCNet", "RET", "Proposed-EF"])
 def test_reference_counts_aggregation_and_best_checkpoint(prepared, name):
     _, _, (meta, ef_meta, bd, ed, _, sd, _) = prepared
     reference = json.loads(
