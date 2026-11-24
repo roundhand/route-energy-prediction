@@ -23,16 +23,16 @@ python -m pytest -q
 合成数据只用于运行检查，不用于验证论文精度。真实数据应按 [CSV 格式说明](docs/data-format.md) 组织：
 
 ```bash
-python -m route_energy --config configs/experiment.json --data-root "D:/datasets/ev_energy"
+python -m route_energy --config configs/experiment.json --data-root "D:/datasets/ev_energy" --models "Distance-based Regression" XGBoost LightGBM DNN FCNet RET Proposed-EF
 ```
 
 配置文件中的路径相对于执行命令时的目录解析。更换实验日期时，同时修改日期范围和 `weather_map`。
 
 ## 实验设置
 
-- 模型：距离线性回归、XGBoost、LightGBM、DNN、FCNet、GRU、RET、Proposed-EF。
+- 参考结果涵盖距离线性回归、XGBoost、LightGBM、DNN、FCNet、RET 和 Proposed-EF。
 - 所有模型使用固定路径 ID 划分，训练/验证/测试约为 80%/10%/10%，划分种子为 42。
-- FCNet、GRU、RET 保持路径 MSE + 可调权重 × 路段能耗 MSE；Proposed-EF 的路段项为 EF MSE。DNN 只有路径输出。
+- FCNet 和 RET 使用路径 MSE + 可调权重 × 路段能耗 MSE；Proposed-EF 的路段项为 EF MSE。DNN 只有路径输出。
 - 调参、神经网络早停、剪枝和最佳权重选择，统一使用整个验证集的路径级 RMSE（kWh）。测试集仅用于最终评估。
 - 默认每个随机模型 30 次搜索，最多 50 epochs、patience=10；确定最佳参数后，用原来的 20 个种子复训，最多 100 epochs、patience=15。
 - 距离回归穷举是否拟合截距两个选项，确定性结果只记录一次。

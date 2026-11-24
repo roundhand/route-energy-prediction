@@ -4,7 +4,7 @@
 
 EV route energy prediction with **joint-loss training and unified route-level validation RMSE** for hyperparameter selection, neural early stopping and checkpoint selection. This repository packages a completed research experiment as standalone Python modules; no notebook is required at runtime.
 
-Models: distance-only linear regression, XGBoost, LightGBM, static–dynamic DNN, FCNet, GRU, RET and a grouped EF transformer (Proposed-EF).
+The reference results cover distance-only linear regression, XGBoost, LightGBM, static–dynamic DNN, FCNet, RET, and a grouped EF transformer (Proposed-EF).
 
 ## Install
 
@@ -31,7 +31,7 @@ Synthetic data verifies execution only; its metrics are not scientific benchmark
 Prepare data following [the CSV specification](docs/data-format.md), then:
 
 ```bash
-python -m route_energy --config configs/experiment.json --data-root /path/to/preprocessed/data
+python -m route_energy --config configs/experiment.json --data-root /path/to/preprocessed/data --models "Distance-based Regression" XGBoost LightGBM DNN FCNet RET Proposed-EF
 ```
 
 Windows paths also work: `--data-root "D:/datasets/ev_energy"`. Paths in JSON are resolved relative to the current working directory. Change the date range and `weather_map` together for another dataset. The original raw dataset is **not distributed**. Reference results therefore require equivalent privately held data to reproduce.
@@ -59,7 +59,7 @@ To reuse the full model's existing seed results, pass `--reference-run` with the
 | XGBoost / LightGBM | Segment mean/sum/std + distance/count + route context | Route energy |
 | DNN | Segment mean/std/min/max/sum/last + distance/count + route context | Route energy |
 | FCNet | Independent segment features + route context | Segment and route energy |
-| GRU / RET | Ordered segment sequence + route context | Segment and route energy |
+| RET | Ordered segment sequence + route context | Segment and route energy |
 | Proposed-EF | Grouped segment features + route context + distance information | Segment EF and route energy |
 
 Route context includes POI sensitivity, rush-hour category and weather. All splits are fixed by route ID, with random state 42. Neural models with segment outputs retain `route_MSE + seg_loss_w * segment_MSE`; Proposed-EF uses segment EF MSE. Only validation **route RMSE in kWh** chooses hyperparameters, pruning, early stopping and checkpoints. DNN uses route MSE; trees retain their regression objectives. Tree predictions retain the original nonnegative clipping policy.
